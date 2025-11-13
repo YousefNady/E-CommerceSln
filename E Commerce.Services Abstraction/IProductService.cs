@@ -1,4 +1,5 @@
-﻿using E_Commerce.Shared.DTOs.ProductDTOs;
+﻿using E_Commerce.Shared;
+using E_Commerce.Shared.DTOs.ProductDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace E_Commerce.Services_Abstraction
     {
         // Get All Products Return IEnumerable Of Products Data Which Will be 
         // Name, Description , PictureUrl , Price , ProductBrand, ProductType
-        Task<IEnumerable<ProductDTO>> GetAllProductsAsync();
+        Task<PaginatedResult<ProductDTO>> GetAllProductsAsync(ProductQueryParams queryParams);
 
         // Get Product By Id Return Product Data Which Will be 
         // Name, Description , PictureUrl , Price , ProductBrand, ProductType
