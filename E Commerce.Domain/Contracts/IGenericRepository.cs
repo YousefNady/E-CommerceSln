@@ -9,14 +9,15 @@ namespace E_Commerce.Domain.Contracts
 {
     public interface IGenericRepository<TEntity,TKey> where TEntity : BaseEntity<TKey>
     {
-        Task<IEnumerable<TEntity>> GetAllAsync();
-        Task<TEntity?> GetByIdAsync(TKey Id);
-
         Task AddAsync(TEntity entity);
-
-        void Remove(TEntity entity);
         void Update(TEntity entity);
+        void Remove(TEntity entity);
+        Task<TEntity?> GetByIdAsync(TKey Id);
+        Task<TEntity?> GetByIdAsync(ISpecification<TEntity, TKey> Specifications);
+        Task<IEnumerable<TEntity>> GetAllAsync();
 
+        Task<IEnumerable<TEntity>> GetAllAsync(ISpecification<TEntity, TKey> Specifications); // must have Specifications implementation to use it
+        Task<int> CountAsync(ISpecification<TEntity, TKey> Specifications);
 
     }
 }
