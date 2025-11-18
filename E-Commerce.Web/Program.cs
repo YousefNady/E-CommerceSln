@@ -39,10 +39,12 @@ namespace E_Commerce.Web
             builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
             builder.Services.AddSingleton<IConnectionMultiplexer>(SP =>
             {
-                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")!);
+                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString(" Connection")!);
             });
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
+            builder.Services.AddScoped<ICacheRepository, CacheRepository>();
+            builder.Services.AddScoped<ICacheService, CacheService>();
             #endregion
 
             var app = builder.Build();
