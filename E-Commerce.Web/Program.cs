@@ -8,7 +8,9 @@ using E_Commerce.Services;
 using E_Commerce.Services.MappingProfiles;
 using E_Commerce.Services_Abstraction;
 using E_Commerce.Web.Extensions;
+using E_Commerce.Web.Factories;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 using System.Threading.Tasks;
@@ -39,10 +41,16 @@ namespace E_Commerce.Web
             builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly);
             builder.Services.AddSingleton<IConnectionMultiplexer>(SP =>
             {
-                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection")!);
+                return ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString(" Connection")!);
             });
             builder.Services.AddScoped<IBasketRepository, BasketRepository>();
             builder.Services.AddScoped<IBasketService, BasketService>();
+            builder.Services.AddScoped<ICacheRepository, CacheRepository>();
+            builder.Services.AddScoped<ICacheService, CacheService>();
+            builder.Services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationErrorResponse;
+            });
             #endregion
 
             var app = builder.Build();
@@ -64,7 +72,7 @@ namespace E_Commerce.Web
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
+             
             app.UseStaticFiles();
             app.MapControllers(); 
 
