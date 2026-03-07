@@ -3,16 +3,19 @@ using E_Commerce.Persistence.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace E_Commerce.Persistence.Data.Migrations
+namespace E_Commerce.Persistence.Migrations
 {
     [DbContext(typeof(StoreDbContext))]
-    partial class StoreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260305011007_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,7 +103,7 @@ namespace E_Commerce.Persistence.Data.Migrations
 
             modelBuilder.Entity("E_Commerce.Domain.Entities.ProductModule.Product", b =>
                 {
-                    b.HasOne("E_Commerce.Domain.Entities.ProductModule.ProductType", "ProductBrand")
+                    b.HasOne("E_Commerce.Domain.Entities.ProductModule.ProductBrand", "ProductBrand")
                         .WithMany()
                         .HasForeignKey("BrandId")
                         .OnDelete(DeleteBehavior.Cascade)
