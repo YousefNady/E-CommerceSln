@@ -2,6 +2,7 @@
 using E_Commerce.Services_Abstraction;
 using E_Commerce.Shared;
 using E_Commerce.Shared.DTOs.ProductDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace E_Commerce.Presentation.Controllers
@@ -15,6 +16,8 @@ namespace E_Commerce.Presentation.Controllers
             _productService = productService;
         }
 
+        // get all products with pagination and filtering
+        [Authorize]
         [HttpGet]
         [RedisCache]
         // get : baseUrl/api/products / 20

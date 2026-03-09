@@ -1,6 +1,8 @@
 ﻿using E_Commerce.Services_Abstraction;
 using E_Commerce.Shared.DTOs.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace E_Commerce.Presentation.Controllers
 {
@@ -29,6 +31,23 @@ namespace E_Commerce.Presentation.Controllers
         public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDTO)
         {
             var Result = await _authenticationService.RegisterAsync(registerDTO);
+            return HandleResult(Result);
+        }
+
+
+        [HttpGet("emailExists")]
+        public async Task<ActionResult<bool>> CheckEmail(string Email)
+        {
+            var Result = await _authenticationService.CheckEmailAsync(Email);
+            return Ok(Result);
+        }
+
+        [Authorize]
+        [HttpGet("CurrentUser")]
+        public async Task<ActionResult<UserDTO>> GetCurrentUser()
+        {
+            var Email = User.FindFirstValue(ClaimTypes.Email)!;
+            var Result = await _authenticationService.GetUserByEmailAsync(Email);
             return HandleResult(Result);
         }
     }
