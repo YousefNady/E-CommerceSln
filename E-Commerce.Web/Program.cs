@@ -1,19 +1,23 @@
 
 using E_Commerce.Domain.Contracts;
-using E_Commerce.Domain.Entities.ProductModule;
+using E_Commerce.Domain.Entities.IdentityModule;
 using E_Commerce.Persistence.Data.DataSeed;
 using E_Commerce.Persistence.Data.DbContexts;
+using E_Commerce.Persistence.IdentityData.DataSeed;
+using E_Commerce.Persistence.IdentityData.DbContexts;
 using E_Commerce.Persistence.Repositories;
 using E_Commerce.Services;
 using E_Commerce.Services.MappingProfiles;
 using E_Commerce.Services_Abstraction;
 using E_Commerce.Web.Extensions;
 using E_Commerce.Web.Factories;
-using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
-using System.Threading.Tasks;
+using System.Text;
 
 namespace E_Commerce.Web
 {
@@ -34,7 +38,8 @@ namespace E_Commerce.Web
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
-            builder.Services.AddScoped<IDataInitializer, DataInitializer>();
+            builder.Services.AddKeyedScoped<IDataInitializer, DataInitializer>("Default");
+            builder.Services.AddKeyedScoped<IDataInitializer, IdentityDataInitializer>("Identity");
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             //builder.Services.AddAutoMapper(x => x.LicenseKey = "",typeof(ProductProfile).Assembly);
             builder.Services.AddScoped<IProductService, ProductService>();
@@ -51,13 +56,46 @@ namespace E_Commerce.Web
             {
                 options.InvalidModelStateResponseFactory = ApiResponseFactory.GenerateApiValidationErrorResponse;
             });
+
+            builder.Services.AddDbContext<StoreIdentityDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("IdentityConnection"));
+            });
+
+            builder.Services.AddIdentityCore<ApplicationUser>()
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
+
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+            builder.Services.AddAuthentication(Options =>
+            {
+                Options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                Options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.SaveToken = true;
+
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidIssuer = builder.Configuration["JWTOptions:Issuer"],
+                    ValidAudience = builder.Configuration["JWTOptions:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]!))
+                };
+            });
+
             #endregion
 
             var app = builder.Build();
 
             #region DataSeeding
             await app.MigrateDatabase();
+            await app.MigrateIdentityDatabase();
             await app.SeedDatabase();
+            await app.SeedIdentityDatabase();
             #endregion
 
 
@@ -71,10 +109,11 @@ namespace E_Commerce.Web
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-             
+
             app.UseStaticFiles();
-            app.MapControllers(); 
+            app.MapControllers();
 
             #endregion
 

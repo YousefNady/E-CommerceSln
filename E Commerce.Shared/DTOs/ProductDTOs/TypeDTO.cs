@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace E_Commerce.Shared.DTOs.ProductDTOs
+﻿namespace E_Commerce.Shared.DTOs.ProductDTOs
 {
-    public class TypeDTO
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = default!;
-    }
+    public record TypeDTO(int Id, string Name);
 }

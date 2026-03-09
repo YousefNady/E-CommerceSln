@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace E_Commerce.Persistence.Data.Migrations
+namespace E_Commerce.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class ProductModuleTables : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -53,9 +53,9 @@ namespace E_Commerce.Persistence.Data.Migrations
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Products_ProductTypes_BrandId",
+                        name: "FK_Products_ProductBrands_BrandId",
                         column: x => x.BrandId,
-                        principalTable: "ProductTypes",
+                        principalTable: "ProductBrands",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -81,10 +81,10 @@ namespace E_Commerce.Persistence.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ProductBrands");
+                name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "ProductBrands");
 
             migrationBuilder.DropTable(
                 name: "ProductTypes");
