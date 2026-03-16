@@ -1,51 +1,51 @@
 ﻿using E_Commerce.Domain.Contracts;
 using E_Commerce.Domain.Entities;
+using E_Commerce.Domain.Entities.OrderModule;
 using E_Commerce.Domain.Entities.ProductModule;
 using E_Commerce.Persistence.Data.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace E_Commerce.Persistence.Data.DataSeed
 {
     public class DataInitializer : IDataInitializer
     {
-        private readonly StoreDbContext dbContext;
+        private readonly StoreDbContext _dbContext;
 
         public DataInitializer(StoreDbContext dbContext)
         {
-            this.dbContext = dbContext;
+            _dbContext = dbContext;
         }
         public async Task InitializeAsync()
         {
             try
             {
-                var HasProducts = await dbContext.Products.AnyAsync();
-                var HasProductBrands = await dbContext.ProductBrands.AnyAsync();
-                var HasProductTypes = await dbContext.ProductTypes.AnyAsync();
-                if (HasProducts && HasProductBrands && HasProductTypes) return; // exit the function [Don't continue]
+                var HasProducts = await _dbContext.Products.AnyAsync();
+                var HasProductBrands = await _dbContext.ProductBrands.AnyAsync();
+                var HasProductTypes = await _dbContext.ProductTypes.AnyAsync();
+                var HasDeliveryMethods = await _dbContext.Set<DeliveryMethod>().AnyAsync();
+                if (HasProducts && HasProductBrands && HasProductTypes && HasDeliveryMethods) return; // exit the function [Don't continue]
 
                 if (!HasProductBrands)
                 {
-                   await seedDataFromJsonAsync<ProductBrand, int>("brands.json", dbContext.ProductBrands); // Add Locally
+                    await seedDataFromJsonAsync<ProductBrand, int>("brands.json", _dbContext.ProductBrands); // Add Locally
                 }
                 if (!HasProductTypes)
                 {
-                   await seedDataFromJsonAsync<ProductType, int>("types.json", dbContext.ProductTypes); 
+                    await seedDataFromJsonAsync<ProductType, int>("types.json", _dbContext.ProductTypes);
                 }
-                await dbContext.SaveChangesAsync(); // commit to Database
+                await _dbContext.SaveChangesAsync(); // commit to Database
 
                 if (!HasProducts)
                 {
-                   await seedDataFromJsonAsync<Product, int>("products.json", dbContext.Products);
+                    await seedDataFromJsonAsync<Product, int>("products.json", _dbContext.Products);
                 }
-                await dbContext.SaveChangesAsync();
+                if (!HasDeliveryMethods)
+                {
+                    await seedDataFromJsonAsync<DeliveryMethod, int>("delivery.json", _dbContext.Set<DeliveryMethod>());
+                }
 
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -56,8 +56,12 @@ namespace E_Commerce.Persistence.Data.DataSeed
         private async Task seedDataFromJsonAsync<T, TKey>(string fileName, DbSet<T> dbset) where T : BaseEntity<TKey>
         {
             // E Commerce.Persistence\Data\DataSeed\JSONFiles\brands.json
-            var filePath = @"E Commerce.Persistence\Data\DataSeed\JSONFiles\" + fileName;
-            if (!File.Exists(filePath)) throw new FileNotFoundException($"File {fileName} Is Not Exists");
+            var filePath = @"..\E Commerce.Persistence\Data\DataSeed\JSONFiles\" + fileName;
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine($"[Error] File not found at: {Path.GetFullPath(filePath)}");
+                return;
+            }
             try
             {
                 using var dataStream = File.OpenRead(filePath);
@@ -68,12 +72,12 @@ namespace E_Commerce.Persistence.Data.DataSeed
 
                 if (data is not null)
                 {
-                   await dbset.AddRangeAsync(data);
+                    await dbset.AddRangeAsync(data);
                 }
 
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
                 Console.WriteLine($"Error While Reading Json File : {ex} ");
